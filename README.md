@@ -1,5 +1,5 @@
 # LivePollAppBackend
-to install dependecies 
+To launch a development server, run the following command: 
 npm install 
 and
-node app.js -> to start backend server
+node app.js
