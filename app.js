@@ -9,6 +9,7 @@ const router = express.Router();
 const Auth = require('./middleware/auth')
 const Token = require('./service/token')
 const Poll = require('./models/polls');
+const ChatHistory = require('./models/chatHistory');
 
 const app = express();
 const server = http.createServer(app);
@@ -34,7 +35,7 @@ const chatMessages = [];
 io.on('connection', (socket) => {
   console.log('Client connected',socket.id);
 
-  socket.emit('chatMessages', chatMessages);
+  // socket.emit('chatMessages', chatMessages);
 
   socket.on('vote',async (pollId,optionId) => {
     try {
@@ -53,10 +54,14 @@ io.on('connection', (socket) => {
   io.emit('onType',username) 
   })
 
-  socket.on('chatMessage', (data) => {
+  socket.on('chatMessage', async(data) => {
     console.log("chatMessage",data)
-    chatMessages.push({username: data.username ,message:data.message });
-    io.emit('chatMessages', chatMessages);
+    let chatHistory = await new ChatHistory({
+      username : data.username,
+      message : data.message
+    }).save();
+    chatHistory = await ChatHistory.find({}).limit(10);
+    io.emit('chatMessages', chatHistory);
   });
 
   socket.on('disconnect', () => {
@@ -159,6 +164,21 @@ app.post('/api/polls/:id/vote', async (req, res) => {
     res.status(404).json({ error: 'Poll not found' });
   }
 });
+
+app.get('/api/chats', async(req,res)=>{
+  try{
+      const chat_history = await ChatHistory.find({}).limit(req.limit||10);
+      res.send({
+        status : true,
+        message : 'Chat feched successfully!',
+        data : chat_history
+      })
+
+  }
+  catch (error) {
+    res.status(404).json({ error: 'Chat not found' });
+  }
+})
 
 server.listen(3001, () => {
   console.log('Server listening on port 3001');
