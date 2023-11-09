@@ -145,7 +145,7 @@ app.post("/api/sign_up", async (req, res) => {
 });
 
 
-app.get('/api/polls', async (req, res) => {
+app.get('/api/polls',Auth, async (req, res) => {
   const polls = await Poll.find({});
   res.json(polls);
 });
@@ -165,7 +165,7 @@ app.post('/api/polls/:id/vote', async (req, res) => {
   }
 });
 
-app.get('/api/chats', async(req,res)=>{
+app.get('/api/chats',Auth, async(req,res)=>{
   try{
       const chat_history = await ChatHistory.find({}).limit(req.limit||10);
       res.send({
